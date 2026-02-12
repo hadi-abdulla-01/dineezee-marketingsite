@@ -60,72 +60,40 @@ export default function ScrollyTelling() {
         gsap.registerPlugin(ScrollTrigger);
 
         const loadImages = async () => {
+            const promises: Promise<void>[] = [];
             const imageObjects: HTMLImageElement[] = new Array(FRAME_COUNT);
             let loadedCount = 0;
 
-            // Critical frames for initial experience (first 30 frames = ~2 seconds of animation)
-            const CRITICAL_FRAMES = 30;
-
-            // Load critical frames first
-            const criticalPromises: Promise<void>[] = [];
-            for (let i = 0; i < CRITICAL_FRAMES; i++) {
+            for (let i = 0; i < FRAME_COUNT; i++) {
                 const promise = new Promise<void>((resolve) => {
                     const img = new Image();
+                    // Frame names start from 1000
                     const currentFrameIndex = 1000 + i;
                     const src = `${FRAME_PATH}${currentFrameIndex}.png`;
 
                     img.src = src;
+                    // Store in correct index (0-based)
                     imageObjects[i] = img;
 
                     img.onload = () => {
                         loadedCount++;
-                        setLoadingProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
+                        if (loadedCount % 10 === 0 || loadedCount === FRAME_COUNT) {
+                            setLoadingProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
+                        }
                         resolve();
                     };
                     img.onerror = () => {
+                        // console.error(`Failed to load image: ${src}`); // Suppress excessive logs
                         loadedCount++;
                         resolve();
                     };
                 });
-                criticalPromises.push(promise);
+                promises.push(promise);
             }
 
-            // Wait for critical frames, then show content
-            await Promise.all(criticalPromises);
             imagesRef.current = imageObjects;
+            await Promise.all(promises);
             setIsLoading(false);
-
-            // Load remaining frames in background (lazy load)
-            const remainingPromises: Promise<void>[] = [];
-            for (let i = CRITICAL_FRAMES; i < FRAME_COUNT; i++) {
-                const promise = new Promise<void>((resolve) => {
-                    const img = new Image();
-                    const currentFrameIndex = 1000 + i;
-                    const src = `${FRAME_PATH}${currentFrameIndex}.png`;
-
-                    // Lazy load with slight delay to prioritize critical frames
-                    setTimeout(() => {
-                        img.src = src;
-                        imageObjects[i] = img;
-
-                        img.onload = () => {
-                            loadedCount++;
-                            if (loadedCount % 20 === 0 || loadedCount === FRAME_COUNT) {
-                                setLoadingProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
-                            }
-                            resolve();
-                        };
-                        img.onerror = () => {
-                            loadedCount++;
-                            resolve();
-                        };
-                    }, Math.floor(i / 10) * 100); // Stagger loading
-                });
-                remainingPromises.push(promise);
-            }
-
-            // Continue loading in background
-            await Promise.all(remainingPromises);
         };
 
         loadImages();
@@ -253,16 +221,6 @@ export default function ScrollyTelling() {
                     />
                 </div>
                 <p className="mt-2 text-sm text-gray-500 font-mono">{loadingProgress}%</p>
-
-                {/* Skip button appears after 3 seconds or 10% loaded */}
-                {loadingProgress >= 10 && (
-                    <button
-                        onClick={() => setIsLoading(false)}
-                        className="mt-6 px-6 py-2 bg-transparent border-2 border-[#F1B715] text-[#F1B715] rounded-full font-semibold hover:bg-[#F1B715] hover:text-black transition-all duration-300 animate-pulse"
-                    >
-                        Skip & Start Now
-                    </button>
-                )}
             </div>
         );
     }

@@ -153,7 +153,7 @@ export default function ScrollyTelling() {
                     trigger: containerRef.current,
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 2,
+                    scrub: 0.5,
                 }
             });
 
@@ -227,8 +227,8 @@ export default function ScrollyTelling() {
 
     return (
         <div className="relative bg-[#0f0f0f]">
-            {/* Height controls scroll sensitivity - Adjusted to 4500vh */}
-            <div ref={containerRef} className="relative" style={{ height: "4500vh" }}>
+            {/* Height controls scroll sensitivity - Reduced to 1200vh for very fast scroll */}
+            <div ref={containerRef} className="relative" style={{ height: "1200vh" }}>
                 <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
                     <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -282,11 +282,7 @@ export default function ScrollyTelling() {
                 </div>
             </div>
 
-            <div className="h-screen bg-[#0f0f0f] flex items-center justify-center">
-                <a href="#" className="bg-[#F1B715] text-black px-12 py-6 rounded-full text-2xl font-bold hover:scale-110 transition-transform shadow-lg">
-                    Get Started
-                </a>
-            </div>
+
         </div>
     );
 }
